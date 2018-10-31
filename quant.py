@@ -3,7 +3,8 @@
 """
 Created on Sun Oct 28 21:11:57 2018
 
-@author: mauricedentallab
+@author: mauricedentallab,
+         monkslc
 """
 
 import pandas as pd
@@ -27,8 +28,8 @@ def get_stocks(tickers=[], answer = ' ' ):
         return pct_return
     else:
         return stocks_to_analyze
-    
-    
+
+
 def monte_carlo(tickers = []):
     quandl.ApiConfig.api_key= "3PMrCbmFBBWqH9YQ1tBW"
     quandl_stocks = []
@@ -40,7 +41,7 @@ def monte_carlo(tickers = []):
     port_volatility = []
     sharpe_ratio = []
     stock_weights = []
-    
+
     # set the number of combinations for imaginary portfolios
     num_assets = len(stock_list)
     num_portfolios = 50000
@@ -48,10 +49,10 @@ def monte_carlo(tickers = []):
     returns_annual = returns_daily.mean() * 250 * 100
     cov_daily = returns_daily.cov()
     cov_annual = cov_daily * 250
-    
+
     #set random seed for reproduction's sake
     np.random.seed(101)
-    
+
     # populate the empty lists with each portfolios returns,risk and weights
     for single_portfolio in range(num_portfolios):
         weights = np.random.random(num_assets)
@@ -63,32 +64,32 @@ def monte_carlo(tickers = []):
         port_returns.append(returns)
         port_volatility.append(volatility)
         stock_weights.append(weights)
-    
+
     # a dictionary for Returns and Risk values of each portfolio
     portfolio = {'Returns': port_returns,
                  'Volatility': port_volatility,
                  'Sharpe Ratio': sharpe_ratio}
-    
+
     # extend original dictionary to accomodate each ticker and weight in the portfolio
     for counter,symbol in enumerate(stock_list):
         portfolio[symbol+' Weight'] = [Weight[counter] for Weight in stock_weights]
-    
+
     # make a nice dataframe of the extended dictionary
     df = pd.DataFrame(portfolio)
-    
+
     # get better labels for desired arrangement of columns
     column_order = ['Returns', 'Volatility', 'Sharpe Ratio'] + [stock+' Weight' for stock in stock_list]
-    
+
     # reorder dataframe columns
     df = df[column_order]
-    
+
     min_volatility = df['Volatility'].min()
     max_sharpe = df['Sharpe Ratio'].max()
-    
+
     # use the min, max values to locate and create the two special portfolios
     sharpe_portfolio = df.loc[df['Sharpe Ratio'] == max_sharpe]
     min_variance_port = df.loc[df['Volatility'] == min_volatility]
-    
+
     # plot frontier, max sharpe & min Volatility values with a scatterplot
     plt.style.use('seaborn-dark')
     df.plot.scatter(x='Volatility', y='Returns', c='Sharpe Ratio',
