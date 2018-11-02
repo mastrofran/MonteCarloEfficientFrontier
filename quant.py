@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Oct 28 21:11:57 2018
-
-@author: mauricedentallab,
-         monkslc
+@author: mauricedentallab
 """
 
 import pandas as pd
@@ -46,8 +44,24 @@ def monte_carlo(tickers = []):
     num_assets = len(stock_list)
     num_portfolios = 50000
     returns_daily = stocks_to_analyze.pct_change()
+
+    ####
+    #### I don't this this is how you annualize returns
+    #### Because stock prices compound, the daily return
+    #### won't just be the daily return * 250
+    #### I think its ( ( (1+dailyReturn) ^ 250 ) - 1) * 100
+    ####
+    ####
     returns_annual = returns_daily.mean() * 250 * 100
+
+    
     cov_daily = returns_daily.cov()
+
+    ####
+    #### I'm not sure if an annual covariance makes sense,
+    #### I believe your covariance is your covariance regardless
+    #### of time period. But I could be wrong
+    ####
     cov_annual = cov_daily * 250
 
     #set random seed for reproduction's sake
@@ -59,8 +73,16 @@ def monte_carlo(tickers = []):
         weights /= np.sum(weights)
         returns = np.dot(weights, returns_annual)
         volatility = np.sqrt(np.dot(weights.T, np.dot(cov_annual, weights)))
+
+        ####
+        #### I'm not totally sure this formula is correct for the sharpe ratio
+        #### I think you need to account for the changing risk free rate over time
+        #### otherwise it would be hard to compare ratios from different periods
+        #### Again, I could definitely be wrong on this.
+        ####
         sharpe = returns / volatility
         sharpe_ratio.append(sharpe)
+
         port_returns.append(returns)
         port_volatility.append(volatility)
         stock_weights.append(weights)
